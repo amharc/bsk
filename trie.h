@@ -22,9 +22,10 @@ void trie_insert(struct trie *restrict tree, const char *restrict word, size_t l
 
 /* Gets an arbitrary word that has been inserted even (but positive) number of times. 
  *
- * Returns NULL if no such word exists.
+ * Returns NULL if no such word exists. Otherwise it returns a copy of the word, so the
+ * caller is responsible for freeing the memory.
  */
-struct unbounded_string* trie_get_even(struct trie *restrict)
+const char* trie_get_even(struct trie *restrict)
     __attribute__((nonnull));
 
 #endif /* !_TRIE_H */

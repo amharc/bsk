@@ -32,7 +32,7 @@ static struct trie_node* node_create()
 static void node_free_recursively(struct trie_node *restrict node);
 
 /* A value destructor for the red-black trees. */
-void rb_value_destructor(const struct rb_tree *restrict tree, rb_key key, void *restrict value, void *restrict data)
+static void rb_value_destructor(const struct rb_tree *restrict tree, rb_key key, void *restrict value, void *restrict data)
     __attribute__((nonnull(1, 3)));
 
 struct trie_get_even_data {
@@ -40,10 +40,10 @@ struct trie_get_even_data {
     const char *result;
 };
 
-void node_get_even(const struct trie_node *restrict node, struct trie_get_even_data *restrict data)
+static void node_get_even(const struct trie_node *restrict node, struct trie_get_even_data *restrict data)
     __attribute__((nonnull));
 
-void node_get_even_foreach_callback(const struct rb_tree *restrict tree, rb_key key, void *restrict value, void *restrict data)
+static void node_get_even_foreach_callback(const struct rb_tree *restrict tree, rb_key key, void *restrict value, void *restrict data)
     __attribute__((nonnull(1, 3)));
 
 /* 
@@ -79,6 +79,17 @@ void trie_insert(struct trie *trie, const char *word, size_t length) {
     }
 
     node->counter++;
+}
+
+const char* trie_get_even(struct trie *trie) {
+    struct trie_get_even_data data = {
+        .current = us_from_string(""),
+        .result = NULL
+    };
+
+    node_get_even(trie->root, &data);
+
+    return data.result;
 }
 
 /* 
