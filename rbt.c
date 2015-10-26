@@ -18,7 +18,7 @@ struct rb_tree {
     struct rb_node *root;
 
     /* The destructor callback, NULL if none */
-    rb_value_destructor destructor;
+    rb_callback destructor;
 
     /* The destructor callback data, NULL if none */
     void *destructor_data;
@@ -94,6 +94,9 @@ static struct rb_node* delete(struct rb_tree *restrict tree, struct rb_node *res
 static inline int compare(rb_key, rb_key)
     __attribute__((pure, const));
 
+/* Fires the callback on every (key, value) pair in the subtree rooted at `node` */
+void foreach(struct rb_tree *restrict tree, struct rb_node *restrict node, rb_callback, void *restrict data)
+    __attribute__((nonnull(1)));
 /* 
  * =================== Public functions ===================
  */
@@ -111,7 +114,7 @@ void rb_tree_free(struct rb_tree *restrict tree) {
     free(tree);
 }
 
-void rb_set_value_destructor(struct rb_tree *restrict tree, rb_value_destructor destructor, void *restrict data) {
+void rb_set_value_destructor(struct rb_tree *restrict tree, rb_callback destructor, void *restrict data) {
     tree->destructor = destructor;
     tree->destructor_data = data;
 }
@@ -127,6 +130,10 @@ void rb_erase(struct rb_tree *restrict tree, rb_key key) {
 
 void rb_insert(struct rb_tree *restrict tree, rb_key key, void *restrict value) {
     tree->root = insert(tree->root, key, value);
+}
+
+void rb_foreach(struct rb_tree *restrict tree, rb_callback callback, void *restrict data) {
+    foreach(tree, tree->root, callback, data);
 }
 
 /* 
@@ -316,4 +323,13 @@ static inline int compare(rb_key lhs, rb_key rhs) {
         return 0;
     else
         return 1;
+}
+
+void foreach(struct rb_tree *restrict tree, struct rb_node *restrict node, rb_callback callback, void *data) {
+    if(!node)
+        return;
+
+    foreach(tree, node->left, callback, data);
+    callback(tree, node->key, node->value, data);
+    foreach(tree, node->right, callback, data);
 }
