@@ -21,7 +21,7 @@ void trie_insert(struct trie *restrict tree, const char *restrict word, size_t l
     __attribute__((nonnull(1, 2)));
 
 struct trie_get_even_response {
-    const char *word;
+    char *word;
 
     /* How many times this word has been inserted. */
     size_t count;

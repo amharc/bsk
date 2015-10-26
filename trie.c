@@ -52,6 +52,7 @@ static void node_get_even_foreach_callback(const struct rb_tree *restrict tree, 
 
 struct trie* trie_create(void) {
     struct trie *trie = calloc(1, sizeof(struct trie));
+
     if(!trie)
         fail("Unable to allocate memory for a TRIE");
 
@@ -62,6 +63,7 @@ struct trie* trie_create(void) {
 
 void trie_free(struct trie *trie) {
     node_free_recursively(trie->root);
+    free(trie);
 }
 
 void trie_insert(struct trie *trie, const char *word, size_t length) {
@@ -92,6 +94,7 @@ struct trie_get_even_response trie_get_even(struct trie *trie) {
 
     node_get_even(trie->root, &data);
 
+    us_free(data.current);
     return data.result;
 }
 
@@ -116,6 +119,7 @@ void node_free_recursively(struct trie_node *node) {
         return;
 
     rb_tree_free(node->children);
+    free(node);
 }
 
 void rb_value_destructor(const struct rb_tree *tree __attribute__((unused)),

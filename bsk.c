@@ -2,6 +2,7 @@
 
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -61,6 +62,7 @@ int main() {
             /* null-terminate the string */
             us_push(state.line, 0);
             printf("%s\n%s: %zd times\n", us_to_string(state.line), response.word, response.count);
+            free(response.word);
         }
     }
 
