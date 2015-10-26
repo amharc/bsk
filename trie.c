@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 
 /* Represents a node in a TRIE */
 struct trie_node {
@@ -30,7 +31,19 @@ static struct trie_node* node_create()
 /* Deletes a TRIE node recursively. */
 static void node_free_recursively(struct trie_node *restrict node);
 
+/* A value destructor for the red-black trees. */
 void rb_value_destructor(const struct rb_tree *restrict tree, rb_key key, void *restrict value, void *restrict data)
+    __attribute__((nonnull(1, 3)));
+
+struct trie_get_even_data {
+    struct unbounded_string *current;
+    const char *result;
+};
+
+void node_get_even(const struct trie_node *restrict node, struct trie_get_even_data *restrict data)
+    __attribute__((nonnull));
+
+void node_get_even_foreach_callback(const struct rb_tree *restrict tree, rb_key key, void *restrict value, void *restrict data)
     __attribute__((nonnull(1, 3)));
 
 /* 
@@ -47,8 +60,8 @@ struct trie* trie_create(void) {
     return trie;
 }
 
-void trie_free(struct trie *tree) {
-    node_free_recursively(tree->root);
+void trie_free(struct trie *trie) {
+    node_free_recursively(trie->root);
 }
 
 void trie_insert(struct trie *trie, const char *word, size_t length) {
@@ -96,4 +109,31 @@ void rb_value_destructor(const struct rb_tree *tree __attribute__((unused)),
         void *value,
         void *data __attribute__((unused))) {
     node_free_recursively((struct trie_node *) value);
+}
+
+/* 
+ * =================== Get_even helpers ===================
+ */
+
+void node_get_even(const struct trie_node *node, struct trie_get_even_data *data) {
+    if(node->counter > 0 && node->counter % 2 == 1 && !data->result) {
+        data->result = strdup(us_to_string(data->current));
+        if(!data->result) {
+            fail("Unable to copy a string");
+        }
+    }
+
+    if(!data->result) {
+        rb_foreach(node->children, &node_get_even_foreach_callback, data);
+    }
+}
+
+void node_get_even_foreach_callback(const struct rb_tree *tree __attribute__((unused)),
+        rb_key key, void *_node, void *_data) {
+    struct trie_get_even_data *data = _data;
+    const struct trie_node *node = _node;
+
+    us_push(data->current, key);
+    node_get_even(node, data);
+    us_pop(data->current);
 }

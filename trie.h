@@ -1,6 +1,8 @@
 #ifndef _TRIE_H
 #define _TRIE_H
 
+#include "unbounded_string.h"
+
 #include <stddef.h>
 
 /* An opaque type representing a TRIE */
@@ -22,7 +24,7 @@ void trie_insert(struct trie *restrict tree, const char *restrict word, size_t l
  *
  * Returns NULL if no such word exists.
  */
-const char* trie_get_even(struct trie *restrict)
+struct unbounded_string* trie_get_even(struct trie *restrict)
     __attribute__((nonnull));
 
 #endif /* !_TRIE_H */

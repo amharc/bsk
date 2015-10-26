@@ -95,7 +95,7 @@ static inline int compare(rb_key, rb_key)
     __attribute__((pure, const));
 
 /* Fires the callback on every (key, value) pair in the subtree rooted at `node` */
-void foreach(struct rb_tree *restrict tree, struct rb_node *restrict node, rb_callback, void *restrict data)
+void foreach(const struct rb_tree *restrict tree, struct rb_node *restrict node, rb_callback, void *restrict data)
     __attribute__((nonnull(1)));
 
 /* 
@@ -120,7 +120,7 @@ void rb_set_value_destructor(struct rb_tree *tree, rb_callback destructor, void 
     tree->destructor_data = data;
 }
 
-void* rb_get(struct rb_tree *tree, rb_key key) {
+void* rb_get(const struct rb_tree *tree, rb_key key) {
     struct rb_node *restrict node = find(tree, key);
     return node ? node->value : NULL;
 }
@@ -133,7 +133,7 @@ void rb_insert(struct rb_tree *tree, rb_key key, void *value) {
     tree->root = insert(tree->root, key, value);
 }
 
-void rb_foreach(struct rb_tree *tree, rb_callback callback, void *data) {
+void rb_foreach(const struct rb_tree *tree, rb_callback callback, void *data) {
     foreach(tree, tree->root, callback, data);
 }
 
@@ -326,7 +326,7 @@ int compare(rb_key lhs, rb_key rhs) {
         return 1;
 }
 
-void foreach(struct rb_tree *tree, struct rb_node *node, rb_callback callback, void *data) {
+void foreach(const struct rb_tree *tree, struct rb_node *node, rb_callback callback, void *data) {
     if(!node)
         return;
 
