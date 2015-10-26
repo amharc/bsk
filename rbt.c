@@ -29,37 +29,50 @@ struct rb_tree {
  */
 
 /* Creates a red-black tree node. */
-static struct rb_node* node_create(rb_key key, void *value) __attribute__((returns_nonnull));
+static struct rb_node* node_create(rb_key key, void *value)
+    __attribute__((returns_nonnull));
 
-/* Performs a left rotation (`node` <-> `node->parent`) and returns the new parent of `node`. */
-static inline struct rb_node* rotate_left(struct rb_node *node) __attribute__((nonnull, returns_nonnull));
+/* Performs a left rotation (`node` <-> `node->right`) and returns the new parent of `node`. */
+static inline struct rb_node* rotate_left(struct rb_node *node)
+    __attribute__((nonnull, returns_nonnull));
 
-/* Performs a right rotation (`node` <-> `node->parent`) and returns the new parent of `node`. */
-static inline struct rb_node* rotate_right(struct rb_node *node) __attribute__((nonnull, returns_nonnull));
+/* Performs a right rotation (`node` <-> `node->left`) and returns the new parent of `node`. */
+static inline struct rb_node* rotate_right(struct rb_node *node)
+    __attribute__((nonnull, returns_nonnull));
 
 /* Deletes a node, calling the destructor callback, if any */
-static void node_free(struct rb_tree *restrict tree, struct rb_node *restrict node) __attribute__((nonnull));
+static void node_free(struct rb_tree *restrict tree, struct rb_node *restrict node)
+    __attribute__((nonnull));
 
 /* Finds a node with the given key. Returns NULL if none is found. */
-static struct rb_node* find(const struct rb_tree *restrict tree, rb_key key) __attribute__((nonnull));
+static struct rb_node* find(const struct rb_tree *restrict tree, rb_key key)
+    __attribute__((nonnull));
 
 /* Checks whether `node` is red. */
-static inline bool is_red(const struct rb_node *node) __attribute__((nonnull, pure));
+static inline bool is_red(const struct rb_node *restrict node)
+    __attribute__((nonnull, pure));
 
 /* Flips the colours of `node` and its children. */
-static inline void colour_flip(struct rb_node *node) __attribute__((nonnull));
+static inline void colour_flip(struct rb_node *restrict node)
+    __attribute__((nonnull));
 
 /* Performs one step of the restoration of red-black properties. */
-static inline struct rb_node* move_red_right(struct rb_node *node) __attribute__((nonnull, returns_nonnull));
+static inline struct rb_node* move_red_right(struct rb_node *restrict node)
+    __attribute__((nonnull, returns_nonnull));
 
 /* Performs one step of the restoration of red-black properties. */
-static inline struct rb_node* move_left_right(struct rb_node *node) __attribute__((nonnull, returns_nonnull));
+static inline struct rb_node* move_left_right(struct rb_node *restrict node)
+    __attribute__((nonnull, returns_nonnull));
 
-/* Inserts a (key, value) pair into the subtree rooted at `node`. It assumes no value is already associated with this key. */
-static struct rb_node* insert(struct rb_node *node, rb_key key, void *value) __attribute__((nonnull(1), returns_nonnull));
+/* Inserts a (key, value) pair into the subtree rooted at `node`.
+ *
+ * It assumes no value is already associated with this key.
+ */
+static struct rb_node* insert(struct rb_node *restrict node, rb_key key, void *restrict value)
+    __attribute__((nonnull(1), returns_nonnull));
 
 /* Returns the node with the minimal key in the subtree rooted at `node`. */
-static inline struct rb_node* min_node(struct rb_node *node) __attribute__((nonnull, returns_nonnull));
+static inline struct rb_node* min_node(struct rb_node *restrict node) __attribute__((nonnull, returns_nonnull));
 
 /* Performs a three-way comparison between rb_keys. */
 static inline int compare(rb_key, rb_key) __attribute__((const));
