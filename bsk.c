@@ -1,70 +1,34 @@
-#include "trie.h"
+#include "run.h"
+#include "defines.h"
+#include "common.h"
 
-#include <ctype.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include <security/pam_appl.h>
+#include <security/pam_misc.h>
 
-struct state {
-    struct unbounded_string *line;
-    struct trie *trie;
-    size_t word_begin;
+
+static struct pam_conv conv = {
+    .conv = misc_conv,
+    .appdata_ptr = NULL
 };
 
-struct state create_state() {
-    struct state result = {
-        .line = us_from_string(""),
-        .trie = trie_create(),
-        .word_begin = 0,
-    };
-
-    return result;
-}
-
-void cleanup_state(struct state *state) {
-    us_free(state->line);
-    trie_free(state->trie);
-}
-
-void push_word(struct state *state) {
-    size_t current = us_length(state->line);
-    if(state->word_begin == current)
-        return;
-
-    trie_insert(state->trie, us_to_string(state->line) + state->word_begin, current - state->word_begin);
-    state->word_begin = current + 1;
-}
-
 int main() {
-    while(!feof(stdin)) {
-        struct state __attribute__((cleanup(cleanup_state))) state = create_state();
+    pam_handle_t *pamh;
+    int r = pam_start(BSK_SERVICE_NAME, NULL, &conv, &pamh);
+    if(r != PAM_SUCCESS)
+        fail("Unable to start PAM: %d", r);
+    if(!pamh)
+        fail("Unable to start PAM");
 
-        while(true) {
-            char c = getchar();
-            if(c == '.')
-                return 0;
-            else if(c == '\n' || c == EOF)
-                break;
-            else if(isspace(c)) {
-                if(state.word_begin == us_length(state.line))
-                    ++state.word_begin;
-                else
-                    push_word(&state);
-            }
-            us_push(state.line, c);
-        }
+    r = pam_set_item(pamh, PAM_USER_PROMPT, BSK_USER_PROMPT);
+    if(r != PAM_SUCCESS)
+        fail("Unable to set PAM config: %d", r);
 
-        push_word(&state);
+    r = pam_authenticate(pamh, 0);
+    if(r != PAM_SUCCESS)
+        fail("Unable to authenticaete: %d", r);
 
-        struct trie_get_even_response response = trie_get_even(state.trie);
-        if(response.word) {
-            /* null-terminate the string */
-            us_push(state.line, 0);
-            printf("%s\n%s: %zd times\n", us_to_string(state.line), response.word, response.count);
-            free(response.word);
-        }
-    }
+    run();
 
+    pam_end(pamh, PAM_SUCCESS);
     return 0;
 }

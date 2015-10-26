@@ -1,7 +1,7 @@
 EXEC=bsk
 
 CFLAGS=-Wall -Wextra -Werror -pedantic -Wshadow -D_POSIX_C_SOURCE=200809L -std=c11 -fstack-protector-all -fpie -O3 -D_FORTIFY_SOURCE=2
-LDFLAGS=-fpie
+LDFLAGS=-fpie -lpam -ldl -lpam_misc
 SOURCES=$(wildcard *.c)
 DEPENDS=$(patsubst %.c,.%.depends,$(SOURCES))
 OBJECTS=$(patsubst %.c,%.o,$(SOURCES))
