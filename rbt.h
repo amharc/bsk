@@ -21,14 +21,14 @@ typedef void (*rb_value_destructor)(struct rb_tree *restrict tree, rb_key key,
             void *restrict value, void *restrict data);
 
 /* Creates a new, empty red-black tree */
-struct rb_tree* rb_tree_new(void);
+struct rb_tree* rb_tree_create(void) __attribute__((returns_nonnull));
 
 /* Sets the value destructor */
 void rb_set_value_destructor(struct rb_tree *restrict tree, rb_value_destructor destructor, void *restrict data)
     __attribute__((nonnull(1)));
 
 /* Frees the resources held by a red-black tree */
-void rb_tree_delete(struct rb_tree *restrict) __attribute__((nonnull));
+void rb_tree_free(struct rb_tree *restrict) __attribute__((nonnull));
 
 /* Inserts a pair (key, value) into the tree.
  *
@@ -37,6 +37,6 @@ void rb_tree_delete(struct rb_tree *restrict) __attribute__((nonnull));
 void rb_insert(struct rb_tree *restrict, rb_key key, void *restrict value) __attribute__((nonnull));
 
 /* Returns the value associated with the given key, NULL if none */
-void* rb_access(struct rb_tree *restrict, rb_key key) __attribute__((nonnull));
+void* rb_get(struct rb_tree *restrict, rb_key key) __attribute__((nonnull));
 
 #endif /* !_RBT_H */
