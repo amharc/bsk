@@ -15,7 +15,8 @@ typedef void (*rb_callback)(struct rb_tree *restrict tree, rb_key key,
             void *restrict value, void *restrict data);
 
 /* Creates a new, empty red-black tree */
-struct rb_tree* rb_tree_create(void) __attribute__((returns_nonnull));
+struct rb_tree* rb_tree_create(void)
+    __attribute__((returns_nonnull));
 
 /* Sets the value destructor */
 void rb_set_value_destructor(struct rb_tree *restrict tree, rb_callback destructor, void *restrict data)
@@ -28,15 +29,19 @@ void rb_tree_free(struct rb_tree *restrict) __attribute__((nonnull));
  *
  * If the key is already present, the associated value is changed
  */
-void rb_insert(struct rb_tree *restrict, rb_key key, void *restrict value) __attribute__((nonnull));
+void rb_insert(struct rb_tree *restrict, rb_key key, void *restrict value)
+    __attribute__((nonnull));
 
 /* Removes the binding associated with the key `key`. */
-void rb_erase(struct rb_tree *restrict, rb_key key) __attribute__((nonnull));
+void rb_erase(struct rb_tree *restrict, rb_key key)
+    __attribute__((nonnull));
 
 /* Returns the value associated with the given key, NULL if none */
-void* rb_get(struct rb_tree *restrict, rb_key key) __attribute__((nonnull));
+void* rb_get(struct rb_tree *restrict, rb_key key)
+    __attribute__((nonnull));
 
 /* Fires the callback on every (key, value) pair in the tree */
-void rb_foreach(struct rb_tree *restrict, rb_callback, void *data) __attribute__((nonnull(1, 2)));
+void rb_foreach(struct rb_tree *restrict, rb_callback, void *data)
+    __attribute__((nonnull(1, 2)));
 
 #endif /* !_RBT_H */
