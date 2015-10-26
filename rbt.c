@@ -54,7 +54,7 @@ static struct rb_node* find(const struct rb_tree *restrict tree, rb_key key)
 
 /* Checks whether `node` is red. */
 static inline bool is_red(const struct rb_node *restrict node)
-    __attribute__((nonnull, pure));
+    __attribute__((pure));
 
 /* Flips the colours of `node` and its children. */
 static inline void colour_flip(struct rb_node *restrict node)

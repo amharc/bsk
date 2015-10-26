@@ -125,14 +125,10 @@ void rb_value_destructor(const struct rb_tree *tree __attribute__((unused)),
     node_free_recursively((struct trie_node *) value);
 }
 
-/* 
- * =================== Get_even helpers ===================
- */
-
 void node_get_even(const struct trie_node *node, struct trie_get_even_data *data) {
-    if(node->counter > 0 && node->counter % 2 == 1 && !data->result.word) {
+    if(node->counter > 0 && node->counter % 2 == 0 && !data->result.word) {
         data->result.count = node->counter;
-        data->result.word = strdup(us_to_string(data->current));
+        data->result.word = strndup(us_to_string(data->current), us_length(data->current));
         if(!data->result.word) {
             fail("Unable to copy a string");
         }
