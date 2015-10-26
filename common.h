@@ -1,6 +1,6 @@
 #ifndef _COMMON_H
 #define _COMMON_H
 
-#define NONNULL __attribute__((nonnull))
+_Noreturn void fail(const char *format, ...) __attribute__((format(printf, 1, 2)));
 
 #endif /* !_COMMON_H */
