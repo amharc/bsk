@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include <stdbool.h>
+
 /* The type of keys in the red-black tree */
 typedef char rb_key;
 
@@ -35,6 +37,9 @@ void rb_tree_free(struct rb_tree *restrict) __attribute__((nonnull));
  * If the key is already present, the associated value is changed
  */
 void rb_insert(struct rb_tree *restrict, rb_key key, void *restrict value) __attribute__((nonnull));
+
+/* Removes the binding associated with the key `key`. */
+void rb_erase(struct rb_tree *restrict, rb_key key) __attribute__((nonnull));
 
 /* Returns the value associated with the given key, NULL if none */
 void* rb_get(struct rb_tree *restrict, rb_key key) __attribute__((nonnull));

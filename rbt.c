@@ -32,6 +32,14 @@ struct rb_tree {
 static struct rb_node* node_create(rb_key key, void *value)
     __attribute__((returns_nonnull));
 
+/* Deletes a node, calling the destructor callback, if any */
+static void node_free(struct rb_tree *restrict tree, struct rb_node *restrict node)
+    __attribute__((nonnull(1)));
+
+/* Deletes the subtree rooted at `node` recursively, calling the destructor callback, if any */
+static void node_free_recursively(struct rb_tree *restrict tree, struct rb_node *restrict node)
+    __attribute__((nonnull(1)));
+
 /* Performs a left rotation (`node` <-> `node->right`) and returns the new parent of `node`. */
 static inline struct rb_node* rotate_left(struct rb_node *node)
     __attribute__((nonnull, returns_nonnull));
@@ -39,10 +47,6 @@ static inline struct rb_node* rotate_left(struct rb_node *node)
 /* Performs a right rotation (`node` <-> `node->left`) and returns the new parent of `node`. */
 static inline struct rb_node* rotate_right(struct rb_node *node)
     __attribute__((nonnull, returns_nonnull));
-
-/* Deletes a node, calling the destructor callback, if any */
-static void node_free(struct rb_tree *restrict tree, struct rb_node *restrict node)
-    __attribute__((nonnull));
 
 /* Finds a node with the given key. Returns NULL if none is found. */
 static struct rb_node* find(const struct rb_tree *restrict tree, rb_key key)
@@ -61,7 +65,11 @@ static inline struct rb_node* move_red_right(struct rb_node *restrict node)
     __attribute__((nonnull, returns_nonnull));
 
 /* Performs one step of the restoration of red-black properties. */
-static inline struct rb_node* move_left_right(struct rb_node *restrict node)
+static inline struct rb_node* move_red_left(struct rb_node *restrict node)
+    __attribute__((nonnull, returns_nonnull));
+
+/* Performs one step of the restoration of red-black properties. */
+static struct rb_node* fixup(struct rb_node *restrict node)
     __attribute__((nonnull, returns_nonnull));
 
 /* Inserts a (key, value) pair into the subtree rooted at `node`.
@@ -69,13 +77,22 @@ static inline struct rb_node* move_left_right(struct rb_node *restrict node)
  * It assumes no value is already associated with this key.
  */
 static struct rb_node* insert(struct rb_node *restrict node, rb_key key, void *restrict value)
-    __attribute__((nonnull(1), returns_nonnull));
+    __attribute__((returns_nonnull));
 
 /* Returns the node with the minimal key in the subtree rooted at `node`. */
-static inline struct rb_node* min_node(struct rb_node *restrict node) __attribute__((nonnull, returns_nonnull));
+static inline struct rb_node* min_node(struct rb_node *restrict node)
+    __attribute__((nonnull, returns_nonnull));
+
+/* Removes the binding associated with the key `key` from the subtree rooted at `node`.
+ *
+ * Returns the new root.
+ */
+static struct rb_node* delete(struct rb_tree *restrict tree, struct rb_node *restrict node, rb_key key)
+    __attribute__((nonnull));
 
 /* Performs a three-way comparison between rb_keys. */
-static inline int compare(rb_key, rb_key) __attribute__((const));
+static inline int compare(rb_key, rb_key)
+    __attribute__((pure, const));
 
 /* 
  * =================== Public functions ===================
@@ -90,7 +107,7 @@ struct rb_tree* rb_tree_create(void) {
 
 void rb_tree_free(struct rb_tree *restrict tree) {
     if(tree->root)
-        node_free(tree, tree->root);
+        node_free_recursively(tree, tree->root);
     free(tree);
 }
 
@@ -102,6 +119,14 @@ void rb_set_value_destructor(struct rb_tree *restrict tree, rb_value_destructor 
 void* rb_get(struct rb_tree *restrict tree, rb_key key) {
     struct rb_node *restrict node = find(tree, key);
     return node ? node->value : NULL;
+}
+
+void rb_erase(struct rb_tree *restrict tree, rb_key key) {
+    delete(tree, tree->root, key);
+}
+
+void rb_insert(struct rb_tree *restrict tree, rb_key key, void *restrict value) {
+    tree->root = insert(tree->root, key, value);
 }
 
 /* 
@@ -120,13 +145,22 @@ static struct rb_node *node_create(rb_key key, void *value) {
 }
 
 static void node_free(struct rb_tree *restrict tree, struct rb_node *restrict node) {
-   if(tree->destructor)
-      tree->destructor(tree, node->key, node->value, tree->destructor_data); 
+    if(!node)
+        return;
 
-   node_free(tree, node->left);
-   node_free(tree, node->right);
+    if(tree->destructor)
+        tree->destructor(tree, node->key, node->value, tree->destructor_data); 
 
-   free(node);
+    free(node);
+}
+
+static void node_free_recursively(struct rb_tree *restrict tree, struct rb_node *restrict node) {
+    if(!node)
+        return;
+
+    node_free_recursively(tree, node->left);
+    node_free_recursively(tree, node->right);
+    node_free(tree, node);
 }
 
 static struct rb_node* find(const struct rb_tree *restrict tree, rb_key key) {
@@ -242,12 +276,12 @@ static inline struct rb_node* min_node(struct rb_node *node) {
     return node;
 }
 
-static struct rb_node* delete(struct rb_node *node, rb_key key) {
+static struct rb_node* delete(struct rb_tree *tree, struct rb_node *node, rb_key key) {
     int r = compare(key, node->key);
     if(r < 0) {
         if(!is_red(node->left) && !is_red(node->left->left))
             node = move_red_left(node);
-        node->left = delete(node->left, key);
+        node->left = delete(tree, node->left, key);
     }
     else {
         if(is_red(node->left))
@@ -269,7 +303,7 @@ static struct rb_node* delete(struct rb_node *node, rb_key key) {
             free(min);
         }
         else
-            node->right = delete(node->right, key);
+            node->right = delete(tree, node->right, key);
     }
     
     return fixup(node);
