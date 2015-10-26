@@ -33,11 +33,11 @@ static struct rb_node* node_create(rb_key key, void *value)
     __attribute__((returns_nonnull));
 
 /* Deletes a node, calling the destructor callback, if any */
-static void node_free(struct rb_tree *restrict tree, struct rb_node *restrict node)
+static void node_free(const struct rb_tree *restrict tree, struct rb_node *restrict node)
     __attribute__((nonnull(1)));
 
 /* Deletes the subtree rooted at `node` recursively, calling the destructor callback, if any */
-static void node_free_recursively(struct rb_tree *restrict tree, struct rb_node *restrict node)
+static void node_free_recursively(const struct rb_tree *restrict tree, struct rb_node *restrict node)
     __attribute__((nonnull(1)));
 
 /* Performs a left rotation (`node` <-> `node->right`) and returns the new parent of `node`. */
@@ -97,6 +97,7 @@ static inline int compare(rb_key, rb_key)
 /* Fires the callback on every (key, value) pair in the subtree rooted at `node` */
 void foreach(struct rb_tree *restrict tree, struct rb_node *restrict node, rb_callback, void *restrict data)
     __attribute__((nonnull(1)));
+
 /* 
  * =================== Public functions ===================
  */
@@ -108,31 +109,31 @@ struct rb_tree* rb_tree_create(void) {
     return tree;
 }
 
-void rb_tree_free(struct rb_tree *restrict tree) {
+void rb_tree_free(struct rb_tree *tree) {
     if(tree->root)
         node_free_recursively(tree, tree->root);
     free(tree);
 }
 
-void rb_set_value_destructor(struct rb_tree *restrict tree, rb_callback destructor, void *restrict data) {
+void rb_set_value_destructor(struct rb_tree *tree, rb_callback destructor, void *data) {
     tree->destructor = destructor;
     tree->destructor_data = data;
 }
 
-void* rb_get(struct rb_tree *restrict tree, rb_key key) {
+void* rb_get(struct rb_tree *tree, rb_key key) {
     struct rb_node *restrict node = find(tree, key);
     return node ? node->value : NULL;
 }
 
-void rb_erase(struct rb_tree *restrict tree, rb_key key) {
+void rb_erase(struct rb_tree *tree, rb_key key) {
     delete(tree, tree->root, key);
 }
 
-void rb_insert(struct rb_tree *restrict tree, rb_key key, void *restrict value) {
+void rb_insert(struct rb_tree *tree, rb_key key, void *value) {
     tree->root = insert(tree->root, key, value);
 }
 
-void rb_foreach(struct rb_tree *restrict tree, rb_callback callback, void *restrict data) {
+void rb_foreach(struct rb_tree *tree, rb_callback callback, void *data) {
     foreach(tree, tree->root, callback, data);
 }
 
@@ -140,7 +141,7 @@ void rb_foreach(struct rb_tree *restrict tree, rb_callback callback, void *restr
  * =================== Private functions ===================
  */
 
-static struct rb_node *node_create(rb_key key, void *value) {
+struct rb_node *node_create(rb_key key, void *value) {
     struct rb_node *node = calloc(1, sizeof(struct rb_node));
     if(!node)
         fail("Unable to allocate memory for a red-black tree node");
@@ -151,7 +152,7 @@ static struct rb_node *node_create(rb_key key, void *value) {
     return node;
 }
 
-static void node_free(struct rb_tree *restrict tree, struct rb_node *restrict node) {
+void node_free(const struct rb_tree *tree, struct rb_node *node) {
     if(!node)
         return;
 
@@ -161,7 +162,7 @@ static void node_free(struct rb_tree *restrict tree, struct rb_node *restrict no
     free(node);
 }
 
-static void node_free_recursively(struct rb_tree *restrict tree, struct rb_node *restrict node) {
+void node_free_recursively(const struct rb_tree *tree, struct rb_node *node) {
     if(!node)
         return;
 
@@ -170,7 +171,7 @@ static void node_free_recursively(struct rb_tree *restrict tree, struct rb_node 
     node_free(tree, node);
 }
 
-static struct rb_node* find(const struct rb_tree *restrict tree, rb_key key) {
+struct rb_node* find(const struct rb_tree *tree, rb_key key) {
    struct rb_node *restrict node = tree->root; 
 
    while(node) {
@@ -185,11 +186,11 @@ static struct rb_node* find(const struct rb_tree *restrict tree, rb_key key) {
    return NULL;
 }
 
-static inline bool is_red(const struct rb_node *node) {
+bool is_red(const struct rb_node *node) {
     return node && node->red;
 }
 
-static inline struct rb_node* rotate_left(struct rb_node *node) {
+struct rb_node* rotate_left(struct rb_node *node) {
     struct rb_node *aux = node->right;
     node->right = aux->left;
     aux->left = node;
@@ -198,7 +199,7 @@ static inline struct rb_node* rotate_left(struct rb_node *node) {
     return aux;
 }
 
-static inline struct rb_node* rotate_right(struct rb_node *node) {
+struct rb_node* rotate_right(struct rb_node *node) {
     struct rb_node *aux = node->left;
     node->left = aux->right;
     aux->right = node;
@@ -207,13 +208,13 @@ static inline struct rb_node* rotate_right(struct rb_node *node) {
     return aux;
 }
 
-static inline void colour_flip(struct rb_node *node) {
+void colour_flip(struct rb_node *node) {
     node->red = !node->red;
     node->left->red = !node->left->red;
     node->right->red = !node->right->red;
 }
 
-static inline struct rb_node* move_red_right(struct rb_node *node) {
+struct rb_node* move_red_right(struct rb_node *node) {
     colour_flip(node);
 
     if(is_red(node->left->left)) {
@@ -224,7 +225,7 @@ static inline struct rb_node* move_red_right(struct rb_node *node) {
     return node;
 }
 
-static inline struct rb_node* move_red_left(struct rb_node *node) {
+struct rb_node* move_red_left(struct rb_node *node) {
     colour_flip(node);
 
     if(is_red(node->right->left)) {
@@ -236,7 +237,7 @@ static inline struct rb_node* move_red_left(struct rb_node *node) {
     return node;
 }
 
-static struct rb_node* fixup(struct rb_node *node) {
+struct rb_node* fixup(struct rb_node *node) {
     if(is_red(node->right))
         node = rotate_left(node);
     
@@ -249,7 +250,7 @@ static struct rb_node* fixup(struct rb_node *node) {
     return node;
 }
 
-static struct rb_node* unlink_min(struct rb_node *node) {
+struct rb_node* unlink_min(struct rb_node *node) {
     if(!node->left)
         return NULL;
 
@@ -261,7 +262,7 @@ static struct rb_node* unlink_min(struct rb_node *node) {
     return fixup(node);
 }
 
-static struct rb_node* insert(struct rb_node *node, rb_key key, void *value) {
+struct rb_node* insert(struct rb_node *node, rb_key key, void *value) {
     if(!node)
         return node_create(key, value);
 
@@ -276,14 +277,14 @@ static struct rb_node* insert(struct rb_node *node, rb_key key, void *value) {
     return fixup(node);
 }
 
-static inline struct rb_node* min_node(struct rb_node *node) {
+struct rb_node* min_node(struct rb_node *node) {
     while(node->left)
         node = node->left;
 
     return node;
 }
 
-static struct rb_node* delete(struct rb_tree *tree, struct rb_node *node, rb_key key) {
+struct rb_node* delete(struct rb_tree *tree, struct rb_node *node, rb_key key) {
     int r = compare(key, node->key);
     if(r < 0) {
         if(!is_red(node->left) && !is_red(node->left->left))
@@ -316,7 +317,7 @@ static struct rb_node* delete(struct rb_tree *tree, struct rb_node *node, rb_key
     return fixup(node);
 }
 
-static inline int compare(rb_key lhs, rb_key rhs) {
+int compare(rb_key lhs, rb_key rhs) {
     if(lhs < rhs)
         return -1;
     else if(lhs == rhs)
@@ -325,7 +326,7 @@ static inline int compare(rb_key lhs, rb_key rhs) {
         return 1;
 }
 
-void foreach(struct rb_tree *restrict tree, struct rb_node *restrict node, rb_callback callback, void *data) {
+void foreach(struct rb_tree *tree, struct rb_node *node, rb_callback callback, void *data) {
     if(!node)
         return;
 
