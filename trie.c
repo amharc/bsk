@@ -37,7 +37,7 @@ static void rb_value_destructor(const struct rb_tree *restrict tree, rb_key key,
 
 struct trie_get_even_data {
     struct unbounded_string *current;
-    const char *result;
+    struct trie_get_even_response result;
 };
 
 static void node_get_even(const struct trie_node *restrict node, struct trie_get_even_data *restrict data)
@@ -81,10 +81,13 @@ void trie_insert(struct trie *trie, const char *word, size_t length) {
     node->counter++;
 }
 
-const char* trie_get_even(struct trie *trie) {
+struct trie_get_even_response trie_get_even(struct trie *trie) {
     struct trie_get_even_data data = {
         .current = us_from_string(""),
-        .result = NULL
+        .result = {
+            .word = NULL,
+            .count = 0
+        }
     };
 
     node_get_even(trie->root, &data);
@@ -127,14 +130,15 @@ void rb_value_destructor(const struct rb_tree *tree __attribute__((unused)),
  */
 
 void node_get_even(const struct trie_node *node, struct trie_get_even_data *data) {
-    if(node->counter > 0 && node->counter % 2 == 1 && !data->result) {
-        data->result = strdup(us_to_string(data->current));
-        if(!data->result) {
+    if(node->counter > 0 && node->counter % 2 == 1 && !data->result.word) {
+        data->result.count = node->counter;
+        data->result.word = strdup(us_to_string(data->current));
+        if(!data->result.word) {
             fail("Unable to copy a string");
         }
     }
 
-    if(!data->result) {
+    if(!data->result.word) {
         rb_foreach(node->children, &node_get_even_foreach_callback, data);
     }
 }
