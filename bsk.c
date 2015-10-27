@@ -30,8 +30,7 @@ int main() {
     if(r != PAM_SUCCESS)
         fail(WITHOUT_ERRNO, "Access denied: %d (%s)", r, pam_strerror(pamh, r));
 
-    run(stdin, stdout);
-
     pam_end(pamh, PAM_SUCCESS);
-    return 0;
+
+    return run(stdin, stdout);
 }
