@@ -27,7 +27,7 @@ int main() {
     if(r != PAM_SUCCESS)
         fail("Unable to authenticaete: %d", r);
 
-    run();
+    run(stdin, stdout);
 
     pam_end(pamh, PAM_SUCCESS);
     return 0;

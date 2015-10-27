@@ -41,12 +41,12 @@ static void push_word(struct state *state) {
     state->word_begin = current + 1;
 }
 
-int run(void) {
-    while(!feof(stdin)) {
+int run(FILE *in, FILE *out) {
+    while(!feof(in)) {
         struct state __attribute__((cleanup(cleanup_state))) state = create_state();
 
         while(true) {
-            char c = getchar();
+            char c = getc(in);
             if(c == '.')
                 return 0;
             else if(c == '\n' || c == EOF)
@@ -66,7 +66,7 @@ int run(void) {
         if(response.word) {
             /* null-terminate the string */
             us_push(state.line, 0);
-            printf("%s\n%s: %zd times\n", us_to_string(state.line), response.word, response.count);
+            fprintf(out, "%s\n%s: %zd times\n", us_to_string(state.line), response.word, response.count);
             free(response.word);
         }
     }

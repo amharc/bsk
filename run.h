@@ -1,6 +1,8 @@
 #ifndef _RUN_H
 #define _RUN_H
 
-int run(void);
+#include <stdio.h>
+
+int run(FILE *in, FILE *out);
 
 #endif /* !_RUN_H */
