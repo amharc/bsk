@@ -105,7 +105,7 @@ void foreach(const struct rb_tree *restrict tree, struct rb_node *restrict node,
 struct rb_tree* rb_tree_create(void) {
     struct rb_tree *tree = calloc(1, sizeof(struct rb_tree));
     if(!tree)
-        fail("Unable to allocate memory for a red-black tree");
+        fail(WITH_ERRNO, "Unable to allocate memory for a red-black tree");
     return tree;
 }
 
@@ -144,7 +144,7 @@ void rb_foreach(const struct rb_tree *tree, rb_callback callback, void *data) {
 struct rb_node *node_create(rb_key key, void *value) {
     struct rb_node *node = calloc(1, sizeof(struct rb_node));
     if(!node)
-        fail("Unable to allocate memory for a red-black tree node");
+        fail(WITH_ERRNO, "Unable to allocate memory for a red-black tree node");
 
     node->key = key;
     node->value = value;

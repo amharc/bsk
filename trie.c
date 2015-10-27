@@ -54,7 +54,7 @@ struct trie* trie_create(void) {
     struct trie *trie = calloc(1, sizeof(struct trie));
 
     if(!trie)
-        fail("Unable to allocate memory for a TRIE");
+        fail(WITH_ERRNO, "Unable to allocate memory for a TRIE");
 
     trie->root = node_create();
 
@@ -106,7 +106,7 @@ struct trie_get_even_response trie_get_even(struct trie *trie) {
 struct trie_node* node_create() {
     struct trie_node *node = calloc(1, sizeof(struct trie_node));
     if(!node)
-        fail("Unable to allocate memory for a TRIE node");
+        fail(WITH_ERRNO, "Unable to allocate memory for a TRIE node");
 
     node->children = rb_tree_create();
     rb_set_value_destructor(node->children, &rb_value_destructor, NULL);
@@ -134,7 +134,7 @@ void node_get_even(const struct trie_node *node, struct trie_get_even_data *data
         data->result.count = node->counter;
         data->result.word = strndup(us_to_string(data->current), us_length(data->current));
         if(!data->result.word) {
-            fail("Unable to copy a string");
+            fail(WITH_ERRNO, "Unable to copy a string");
         }
     }
 

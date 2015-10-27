@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-_Noreturn void fail(const char *format, ...) {
+_Noreturn void fail(bool show_errno, const char *format, ...) {
     va_list fmt_args;
     int err = errno;
 
@@ -16,7 +16,7 @@ _Noreturn void fail(const char *format, ...) {
     va_end(fmt_args);
     fprintf(stderr, "\n");
 
-    if(err != 0)
+    if(err != 0 && show_errno)
         fprintf(stderr, "Error code: %d (%s)\n", err, strerror(err));
 
     exit(EXIT_FAILURE);
