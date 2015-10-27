@@ -5,7 +5,6 @@
 #include <security/pam_appl.h>
 #include <security/pam_misc.h>
 
-
 static struct pam_conv conv = {
     .conv = misc_conv,
     .appdata_ptr = NULL
